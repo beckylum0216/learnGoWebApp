@@ -1,0 +1,12 @@
+body {
+  background: url(../images/shipwreck1.png) no-repeat center center fixed; }
+
+.log-in-form {
+  border: 1px solid #cacaca;
+  padding: 1rem 1rem;
+  border-radius: 3px;
+  margin: 10rem;
+  background: url(../images/transparency.png) center center fixed; }
+
+.link {
+  color: black; }

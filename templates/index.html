@@ -1,0 +1,18 @@
+
+<!DOCTYPE html>
+<html>
+
+<head>
+<!--Error here-->
+<title>A Title</title>
+</head>
+<body>
+<h1>Homepage</h1>
+{{range .}}
+	<div><a href="/page/{{.GUID}}">{{.Title}}</a></div>
+	<div>{{.TruncatedText}}</div>
+	<div>{{.Date}}</div>
+</body>
+{{end}}
+</html>
+
