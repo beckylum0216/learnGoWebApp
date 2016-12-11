@@ -55,7 +55,7 @@ type JSONResponse struct {
 }
 
 type CommentResp struct {
-	Id       int    `json: "id"`
+	Id       string `json: "id"`
 	Name     string `json: "name"`
 	Email    string `json: "email"`
 	Comments string `json: "comments"`
@@ -119,6 +119,7 @@ func ServePage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	comments, err := database.Query("SELECT id, comment_name, comment_email, comment_text FROM comments WHERE Comment_guid=?", pageGUID)
+	log.Println(comments)
 	if err != nil {
 		log.Println(err)
 	}
@@ -127,6 +128,7 @@ func ServePage(w http.ResponseWriter, r *http.Request) {
 		comments.Scan(&comment.Id, &comment.Name, &comment.Email, &comment.CommentText)
 		log.Println(&comment.Id, &comment.Name, &comment.Email, &comment.CommentText)
 		thisPage.Comments = append(thisPage.Comments, comment)
+		log.Println(thisPage.Comments)
 	}
 	//html := `<html><head><title>` + thisPage.Title + `</title></head><body><h1>` + thisPage.Title + `</h1><div>` + thisPage.Content + `</div></body></html>`
 	//fmt.Fprintln(w, html)
@@ -372,8 +374,6 @@ func APIPut(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, vars)
 
 	formdata := CommentResp{}
-	//json.Unmarshal(vars, *res)
-	//log.Println(res.Comments)
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -454,7 +454,7 @@ func main() {
 	rtr.HandleFunc("/markdown", MarkDownHandler)
 	rtr.HandleFunc("/api/comments", APIPost).Methods("POST")
 	//rtr.HandleFunc("/api/comments/{id:[\\w\\d\\-]+}", APIPut).Methods("PUT").Schemes("https")
-	rtr.HandleFunc("/api/commentz", APIPut).Methods("POST")
+	rtr.HandleFunc("/api/commentz", APIPut).Methods("PUT")
 	//routes.HandleFunc("/register", RegisterPOST).Methods("POST").Schemes("https")
 	//routes.HandleFunc("/login", LoginPOST).Methods("POST").Schemes("https")
 	http.Handle("/", rtr)
