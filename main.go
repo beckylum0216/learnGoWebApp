@@ -55,10 +55,10 @@ type JSONResponse struct {
 }
 
 type CommentResp struct {
-	Id       int
-	Name     string
-	Email    string
-	Comments string
+	Id       int    `json: "id"`
+	Name     string `json: "name"`
+	Email    string `json: "email"`
+	Comments string `json: "comments"`
 }
 
 type User struct {
@@ -341,12 +341,60 @@ func APIBadPut(w http.ResponseWriter, r *http.Request) {
 }
 
 func APIPut(w http.ResponseWriter, r *http.Request) {
+	log.Println("running....")
+
+	err := r.ParseForm()
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	log.Println("Starting handler: ", r.PostForm)
+	id := r.FormValue("id")
+	name := r.FormValue("name")
+	email := r.FormValue("email")
+	comments := r.FormValue("comments")
+
+	log.Println(id)
+	log.Println(name)
+	log.Println(email)
+	log.Println(comments)
+
 	vars := mux.Vars(r)
-	fmt.Println(vars)
+
+	dump, err := httputil.DumpRequest(r, true)
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+
+	fmt.Println(string(dump))
+	//fmt.Println(vars)
 	fmt.Fprintln(w, vars)
-	//res := CommentResp{}
-	//json.Unmarshal(vars, *res)s
+
+	formdata := CommentResp{}
+	//json.Unmarshal(vars, *res)
 	//log.Println(res.Comments)
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Failed to read body", http.StatusInternalServerError)
+		return
+	}
+
+	log.Println(body)
+
+	err = json.Unmarshal(body, &formdata)
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "Failed to parse JSON", http.StatusInternalServerError)
+		return
+	}
+
+	res, err := database.Exec("UPDATE comments SET comment_name=?, comment_email=?, comment_text=? WHERE id=?", name, email, comments, id)
+	fmt.Println(res)
+	if err != nil {
+		log.Println(err.Error())
+	}
 }
 
 /*

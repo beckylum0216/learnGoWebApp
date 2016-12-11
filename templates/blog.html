@@ -39,7 +39,7 @@
 		<div class="medium-12 columns">
 			<h2>Edit</h2>
 			<!--<form onsubmit="return putComment(this);">-->
-			<<form action="/api/commentz/" method="POST">
+			<form name="myForm" action="/api/commentz" method = "POST">
 				<input type="text" name="id" class="edit_id" value="{{.Id}}" />
 				<input type="text" name="name" class="edit_name" placeholder="Your Name" value="{{.Name}}" />
 				<input type="text" name="email" class="edit_email" placeholder="Your Email" value="{{.Email}}" />
@@ -81,9 +81,12 @@
 	$(document).ready(
 		function()
 		{
-			$('form').submit(
-				function()
+			$('myForm').submit(
+				function(e)
 				{
+					alert( "Handler for .submit() called." );
+					e.preventDefault();
+
 					var theData = 
 					{
 						'id'		: $('input[name=id]').val(),
@@ -91,6 +94,9 @@
 						'email'		: $('input[name=email]').val(),
 						'comments'	: $('input[name=comments]').val()
 					};
+
+					jsonObject =JSON.stringify(theData);
+					console.log(jsonObject);
 					//var id = $(el).find('.edit_id').val();
 					//var name = $(el).find('.edit_name').val();
 					//var email = $(el).find('.edit_email').val();
@@ -98,9 +104,10 @@
 					$.ajax({
 						url: '/api/commentz',
 						type: 'POST',
-						dataType: 'json'
-						data: theData})
-					.done(function(data){
+						contentType:"application/json; charset=utf-8",
+						dataType: 'json',
+						data: jsonObject})
+					.done(function(jsonObject){
 						console.log(data);
 					});
 					return false;
