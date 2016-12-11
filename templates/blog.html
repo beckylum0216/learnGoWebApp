@@ -38,8 +38,8 @@
 
 		<div class="medium-12 columns">
 			<h2>Edit</h2>
-			<form onsubmit="return putComment(this);">
-			<!--<form action="/api/commentz/" method="PUT">-->
+			<!--<form onsubmit="return putComment(this);">-->
+			<<form action="/api/commentz/" method="POST">
 				<input type="text" name="id" class="edit_id" value="{{.Id}}" />
 				<input type="text" name="name" class="edit_name" placeholder="Your Name" value="{{.Name}}" />
 				<input type="text" name="email" class="edit_email" placeholder="Your Email" value="{{.Email}}" />
@@ -78,20 +78,34 @@
 
 
 <script>
-	function putComment(el) {
-		var id = $(el).find('.edit_id').val();
-		var name = $(el).find('.edit_name').val();
-		var email = $(el).find('.edit_email').val();
-		var text = $(el).find('.edit_comments').val();
-		$.ajax({
-			url: '/api/commentz/'+id,
-			type: 'PUT',
-			success: function(res) {
-				alert('Comment Updated!');
-			}
+	$(document).ready(
+		function()
+		{
+			$('form').submit(
+				function()
+				{
+					var theData = 
+					{
+						'id'		: $('input[name=id]').val(),
+						'name'		: $('input[name=name]').val(),
+						'email'		: $('input[name=email]').val(),
+						'comments'	: $('input[name=comments]').val()
+					};
+					//var id = $(el).find('.edit_id').val();
+					//var name = $(el).find('.edit_name').val();
+					//var email = $(el).find('.edit_email').val();
+					//var text = $(el).find('.edit_comments').val();
+					$.ajax({
+						url: '/api/commentz',
+						type: 'POST',
+						dataType: 'json'
+						data: theData})
+					.done(function(data){
+						console.log(data);
+					});
+					return false;
+				});
 		});
-		return false;
-	}
 </script>
 
 </html>

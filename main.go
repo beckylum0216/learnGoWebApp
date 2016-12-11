@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/http/httputil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -51,6 +52,13 @@ type Page struct {
 
 type JSONResponse struct {
 	Fields map[string]string
+}
+
+type CommentResp struct {
+	Id       int
+	Name     string
+	Email    string
+	Comments string
 }
 
 type User struct {
@@ -290,15 +298,25 @@ func APIPost(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, jsonResp)
 }
 
-func APIPut(w http.ResponseWriter, r *http.Request) {
+// only for reference to broken code does not work
+func APIBadPut(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	id := vars["id"]
+	fmt.Println(id)
+
 	err := r.ParseForm()
 	if err != nil {
 		log.Println(err.Error())
 	}
 
-	vars := mux.Vars(r)
-	id := vars["id"]
-	fmt.Println(id)
+	dump, err := httputil.DumpRequest(r, true)
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+
+	fmt.Println(string(dump))
 
 	//id := r.FormValue("id")
 	name := r.FormValue("name")
@@ -310,6 +328,9 @@ func APIPut(w http.ResponseWriter, r *http.Request) {
 		log.Println(err.Error)
 	}
 	var resp JSONResponse
+	resp.Fields = make(map[string]string)
+	resp.Fields["id"] = string(id)
+
 	jsonResp, err := json.Marshal(resp)
 	if err != nil {
 		log.Println(err.Error())
@@ -317,6 +338,15 @@ func APIPut(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprintln(w, jsonResp)
+}
+
+func APIPut(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	fmt.Println(vars)
+	fmt.Fprintln(w, vars)
+	//res := CommentResp{}
+	//json.Unmarshal(vars, *res)s
+	//log.Println(res.Comments)
 }
 
 /*
@@ -376,7 +406,7 @@ func main() {
 	rtr.HandleFunc("/markdown", MarkDownHandler)
 	rtr.HandleFunc("/api/comments", APIPost).Methods("POST")
 	//rtr.HandleFunc("/api/comments/{id:[\\w\\d\\-]+}", APIPut).Methods("PUT").Schemes("https")
-	rtr.HandleFunc("/api/commentz/{id:[0-9]+}", APIPut).Methods("PUT")
+	rtr.HandleFunc("/api/commentz", APIPut).Methods("POST")
 	//routes.HandleFunc("/register", RegisterPOST).Methods("POST").Schemes("https")
 	//routes.HandleFunc("/login", LoginPOST).Methods("POST").Schemes("https")
 	http.Handle("/", rtr)
