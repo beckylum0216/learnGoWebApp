@@ -1,0 +1,26 @@
+{
+	"ImportPath": "practice",
+	"GoVersion": "go1.7",
+	"GodepVersion": "v75",
+	"Deps": [
+		{
+			"ImportPath": "github.com/go-sql-driver/mysql",
+			"Comment": "v1.2-213-g665b834",
+			"Rev": "665b83488b90b902ce0a305ef6652e599771cdf9"
+		},
+		{
+			"ImportPath": "github.com/gorilla/mux",
+			"Comment": "v1.1-27-g757bef9",
+			"Rev": "757bef944d0f21880861c2dd9c871ca543023cba"
+		},
+		{
+			"ImportPath": "github.com/russross/blackfriday",
+			"Comment": "v1.4-40-g5f33e7b",
+			"Rev": "5f33e7b7878355cd2b7e6b8eefc48a5472c69f70"
+		},
+		{
+			"ImportPath": "github.com/shurcooL/sanitized_anchor_name",
+			"Rev": "1dba4b3954bc059efc3991ec364f9f9a35f597d2"
+		}
+	]
+}
