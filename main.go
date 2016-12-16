@@ -474,14 +474,16 @@ func main() {
 
 	//http.HandleFunc("/", ServeDynamic)
 	//http.HandleFunc("/static", ServeStatic)
+	/*
+		log.Printf("About to listen on 10443. Go to https://127.0.0.1:10443/")
+		zz := http.ListenAndServeTLS(":10443", "server.pem", "server.key", rtr)
+		if err != nil {
+			log.Println(err.Error())
+			log.Fatal("ListenAndServe: ", err)
+		}
+		log.Fatal(zz)
+	*/
 
-	log.Printf("About to listen on 10443. Go to https://127.0.0.1:10443/")
-	zz := http.ListenAndServeTLS(":10443", "server.pem", "server.key", rtr)
-	if err != nil {
-		log.Println(err.Error())
-		log.Fatal("ListenAndServe: ", err)
-	}
-	log.Fatal(zz)
-
-	http.ListenAndServe(":8080", nil)
+	//http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":"+os.Getenv("PORT"), nil)
 }
