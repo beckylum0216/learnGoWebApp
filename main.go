@@ -2,6 +2,7 @@ package main
 
 import (
 	//"crypto/tls"
+	//"bytes"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -55,10 +56,10 @@ type JSONResponse struct {
 }
 
 type CommentResp struct {
-	Id       string `json: "id"`
-	Name     string `json: "name"`
-	Email    string `json: "email"`
-	Comments string `json: "comments"`
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Comments string `json:"comments"`
 }
 
 type User struct {
@@ -344,57 +345,49 @@ func APIBadPut(w http.ResponseWriter, r *http.Request) {
 
 func APIPut(w http.ResponseWriter, r *http.Request) {
 	log.Println("running....")
+	/*
+		err := r.ParseForm()
+		if err != nil {
+			log.Println(err.Error())
+		}
+			log.Println("Starting handler: ", r.PostForm)
+			id := r.FormValue("id")
+			name := r.FormValue("name")
+			email := r.FormValue("email")
+			comments := r.FormValue("comments")
+	*/
+	/*
+		vars := mux.Vars(r)
 
-	err := r.ParseForm()
-	if err != nil {
-		log.Println(err.Error())
-	}
+		dump, err := httputil.DumpRequest(r, true)
+		if err != nil {
+			log.Println(err.Error())
+			return
+		}
 
-	log.Println("Starting handler: ", r.PostForm)
-	id := r.FormValue("id")
-	name := r.FormValue("name")
-	email := r.FormValue("email")
-	comments := r.FormValue("comments")
-
-	log.Println(id)
-	log.Println(name)
-	log.Println(email)
-	log.Println(comments)
-
-	vars := mux.Vars(r)
-
-	dump, err := httputil.DumpRequest(r, true)
-	if err != nil {
-		log.Println(err.Error())
-		return
-	}
-
-	fmt.Println(string(dump))
-	//fmt.Println(vars)
-	fmt.Fprintln(w, vars)
-
+		fmt.Println(string(dump))
+		//fmt.Println(vars)
+		fmt.Fprintln(w, vars)
+	*/
 	formdata := CommentResp{}
+	decoder := json.NewDecoder(r.Body)
 
-	body, err := ioutil.ReadAll(r.Body)
+	err := decoder.Decode(&formdata)
 	if err != nil {
-		http.Error(w, "Failed to read body", http.StatusInternalServerError)
-		return
+		log.Println("decode error: " + err.Error())
+		panic(err.Error())
 	}
+	defer r.Body.Close()
 
-	log.Println(body)
+	log.Println(formdata.Name)
 
-	err = json.Unmarshal(body, &formdata)
-	if err != nil {
-		log.Println(err.Error())
-		http.Error(w, "Failed to parse JSON", http.StatusInternalServerError)
-		return
-	}
-
-	res, err := database.Exec("UPDATE comments SET comment_name=?, comment_email=?, comment_text=? WHERE id=?", name, email, comments, id)
+	res, err := database.Exec("UPDATE comments SET comment_name=?, comment_email=?, comment_text=? WHERE id=?", formdata.Name, formdata.Email, formdata.Comments, formdata.ID)
 	fmt.Println(res)
 	if err != nil {
 		log.Println(err.Error())
 	}
+
+	http.Redirect(w, r, "/page/a-new-blog", 301)
 }
 
 /*
@@ -441,10 +434,13 @@ func main() {
 
 	cssHandler := http.FileServer(http.Dir("./static/css/"))
 	imagesHandler := http.FileServer(http.Dir("./static/images/"))
+	jsHandler := http.FileServer(http.Dir("./static/js/"))
 	rtr.PathPrefix("/static/css").Handler(http.StripPrefix("/static/css", cssHandler))
-	rtr.PathPrefix("/static/images").Handler(http.StripPrefix("/static/images", cssHandler))
+	rtr.PathPrefix("/static/images").Handler(http.StripPrefix("/static/images", imagesHandler))
+	rtr.PathPrefix("/static/js").Handler(http.StripPrefix("/static/js", jsHandler))
 	http.Handle("/static/css/", http.StripPrefix("/static/css/", cssHandler))
 	http.Handle("/static/images/", http.StripPrefix("/static/images/", imagesHandler))
+	http.Handle("/static/js/", http.StripPrefix("/static/images/", jsHandler))
 
 	rtr.HandleFunc("/page/{guid:[0-9a-zA\\-]+}", ServePage)
 	rtr.HandleFunc("/", RedirIndex)
@@ -454,7 +450,7 @@ func main() {
 	rtr.HandleFunc("/markdown", MarkDownHandler)
 	rtr.HandleFunc("/api/comments", APIPost).Methods("POST")
 	//rtr.HandleFunc("/api/comments/{id:[\\w\\d\\-]+}", APIPut).Methods("PUT").Schemes("https")
-	rtr.HandleFunc("/api/commentz", APIPut).Methods("PUT")
+	rtr.HandleFunc("/api/commentz", APIPut).Methods("POST")
 	//routes.HandleFunc("/register", RegisterPOST).Methods("POST").Schemes("https")
 	//routes.HandleFunc("/login", LoginPOST).Methods("POST").Schemes("https")
 	http.Handle("/", rtr)

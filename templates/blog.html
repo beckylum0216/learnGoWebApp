@@ -3,9 +3,11 @@
 
 <link rel="stylesheet" href="/static/css/foundation.css">
 <link rel="stylesheet" href="/static/css/app.css">
+
 <head>
 	<title>Blog Markdown</title>
 	<script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+	<script src="/static/js/jquery.serializeObject.min.js"></script>
 </head>
 
 <body>
@@ -40,13 +42,13 @@
 
 		<div class="medium-12 columns">
 			<h2>Edit</h2>
-			<form action="/api/commentz" class="theForm" method = "POST">
-				<input type="text" name="id" class="forms" value="{{.Id}}" />
-				<input type="text" name="name" class="forms" placeholder="Your Name" value="{{.Name}}" />
-				<input type="text" name="email" class="forms" placeholder="Your Email" value="{{.Email}}" />
-				<textarea class="text" name="comments" class="forms">{{.CommentText}}</textarea>
+			<form action="/api/commentz" class="theForms" method = "POST">
+				<input type="text" name="id" class="forms id" value="{{.Id}}" />
+				<input type="text" name="name" class="forms name" placeholder="Your Name" value="{{.Name}}" />
+				<input type="text" name="email" class="forms email" placeholder="Your Email" value="{{.Email}}" />
+				<textarea class="text" name="comments" class="forms comment">{{.CommentText}}</textarea>
 				<!--<input class="theButtons button" type="submit" value="Edit" />-->
-				<input class="theButtons button" type="button" value="Edit" />
+				<input class="theButtons button" type="button" value="Edit"/>
 			</form>
 			<!--<button id="theButton" class="button" />Change</button>-->
 		</div>
@@ -79,8 +81,24 @@
 
 </body>
 
+<!--<script type="text/javascript">
+	$(document).ready(function(){
+		console.log("ready.....");
+		$(".theButtons.button").click(function(e) {
+		console,log("Running!!!");
+		var $form = $(this).parents(".theForms");
 
-<script>
+		$.ajax({
+			url:         "/api/commentz",
+			type:        "POST",
+			contentType: "application/json; charset=utf-8",
+			dataType:    "json",
+			data:        $form.serialize()
+		});
+	});
+</script>-->
+
+<script type="text/javascript">
 	$(document).ready(
 		
 		function()
@@ -90,9 +108,13 @@
 				
 				function(e)
 				{
-					console.log("myForm Firing??");
-					alert( "Handler for .submit() called." );
 					
+					console.log("myForm Firing??");
+					//alert( "Handler for .submit() called." );
+
+					var $jsonObject = JSON.stringify($(this).parents(".theForms").serializeObject());
+					console.log($jsonObject);
+					/*
 					var theData = 
 					{
 						'id'		: $('input[name=id]').val(),
@@ -103,25 +125,71 @@
 
 					jsonObject =JSON.stringify(theData);
 					console.log(jsonObject);
-					//var id = $(el).find('.edit_id').val();
-					//var name = $(el).find('.edit_name').val();
-					//var email = $(el).find('.edit_email').val();
-					//var text = $(el).find('.edit_comments').val();
+					*/
+
 					$.ajax({
 						url: '/api/commentz',
-						type: 'PUT',
+						type: 'POST',
 						contentType:"application/json; charset=utf-8",
-						dataType: 'json',
-						data: jsonObject})
-					.done(function(jsonObject){
-						console.log(jsonObject);
+						//dataType: 'json',
+						data: $jsonObject
+											})
+					.done(function($jsonObject){
+						console.log("Completed");
+						//console.log("json: ");
+						location.reload();
 					});
 
-					// I prefer to move this to the bottom incase it fails for whatever reason the rest of the code will still run.
-					e.defaultPrevented();
-					return false;
+						// I prefer to move this to the bottom incase it fails for whatever reason the rest of the code will still run.
+					e.preventDefault();
+
+
 				});
 		});
 </script>
+
+<!--<script>
+	$(document).ready(
+		
+		function()
+		{
+			console.log("ready firing??");
+			$(".theButtons.button").click(
+				
+				function()
+				{
+					$(this).parents('.theForm').submit(
+						function(e){
+						console.log("myForm Firing??");
+						alert( "Handler for .submit() called." );
+
+						var theData = 
+						{
+							'id'		: $('input[name=id]').val(),
+							'name'		: $('input[name=name]').val(),
+							'email'		: $('input[name=email]').val(),
+							'comments'	: $('textarea[name=comments]').val()
+						};
+
+						jsonObject =JSON.stringify(theData);
+						console.log(jsonObject);
+					
+						$.ajax({
+							url: '/api/commentz',
+							type: 'PUT',
+							contentType:"application/json; charset=utf-8",
+							dataType: 'json',
+							data: jsonObject})
+						.done(function(jsonObject){
+							console.log(jsonObject);
+						});
+
+						// I prefer to move this to the bottom incase it fails for whatever reason the rest of the code will still run.
+						e.defaultPrevented();
+				});
+					
+			});
+		});
+	</script>-->
 
 </html>
