@@ -24,9 +24,9 @@ import (
 const (
 	DBHost  = "127.0.0.1"
 	DBPort  = ":5432"
-	DBUser  = "postgres"
+	DBUser  = "rebecca"
 	DBPass  = "murdoch33111264"
-	DBDbase = "practice"
+	DBDbase = "d11sa237rihbu6"
 )
 
 var (
