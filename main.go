@@ -488,7 +488,7 @@ func main() {
 		log.Fatal(zz)
 	*/
 
-	http.ListenAndServe(":8080", nil)
+	//http.ListenAndServe(":8080", nil)
 
-	//http.ListenAndServe(":"+os.Getenv("PORT"), nil)
+	http.ListenAndServe(":"+os.Getenv("PORT"), nil)
 }
