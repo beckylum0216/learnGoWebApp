@@ -7,7 +7,7 @@
 <head>
 	<title>Blog Markdown</title>
 	<script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
-	<script src="/static/js/jquery.serializeObject.min.js"></script>
+	<script src="static/js/jquery.serializeObject.min.js"></script>
 </head>
 
 <body>
@@ -59,7 +59,7 @@
 		<form action="/api/comments" method="POST">
 			<div class="medium-12 columns ">
 				<div class="text">
-					<input type="hidden" name="guid" value="{{.GUID}}" />
+					<input type="text" name="guid" value="{{.GUID}}" />
 				</div>
 				<div class="text">
 					<input type="text" name="name" placeholder="Your Name" />

@@ -6,8 +6,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
+	_ "github.com/lib/pq"
 	"github.com/russross/blackfriday"
 	"html/template"
 	"io/ioutil"
@@ -23,9 +23,9 @@ import (
 
 const (
 	DBHost  = "127.0.0.1"
-	DBPort  = ":3306"
-	DBUser  = "root"
-	DBPass  = "tafe1401186"
+	DBPort  = ":5432"
+	DBUser  = "postgres"
+	DBPass  = "murdoch33111264"
 	DBDbase = "practice"
 )
 
@@ -86,11 +86,8 @@ func ServeDynamic(w http.ResponseWriter, r *http.Request) {
 }
 
 func ServeStatic(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		http.Error(w, "405: Method Not Allowed", http.StatusMethodNotAllowed)
-	} else {
-		http.ServeFile(w, r, "/views/static.html")
-	}
+
+	http.ServeFile(w, r, "views/static.html")
 
 }
 
@@ -111,7 +108,7 @@ func ServePage(w http.ResponseWriter, r *http.Request) {
 	thisPage := Page{}
 	fmt.Println(pageGUID)
 
-	err := database.QueryRow("SELECT page_title,page_content,page_date FROM pages WHERE page_guid=?", pageGUID).Scan(&thisPage.Title, &thisPage.RawContent, &thisPage.Date)
+	err := database.QueryRow("SELECT page_title, page_content, page_date FROM pages WHERE page_guid=$1", pageGUID).Scan(&thisPage.Title, &thisPage.RawContent, &thisPage.Date)
 	thisPage.Content = template.HTML(thisPage.RawContent)
 
 	if err != nil {
@@ -119,7 +116,7 @@ func ServePage(w http.ResponseWriter, r *http.Request) {
 		log.Println(err.Error())
 	}
 
-	comments, err := database.Query("SELECT id, comment_name, comment_email, comment_text FROM comments WHERE Comment_guid=?", pageGUID)
+	comments, err := database.Query("SELECT id, comment_name, comment_email, comment_text FROM comments WHERE page_id=$1", pageGUID)
 	log.Println(comments)
 	if err != nil {
 		log.Println(err)
@@ -152,7 +149,7 @@ func RedirIndex(w http.ResponseWriter, r *http.Request) {
 
 func ServeIndex(w http.ResponseWriter, r *http.Request) {
 	var Pages = []Page{}
-	pages, err := database.Query("SELECT page_title, page_content,page_date, page_guid FROM pages ORDER BY ? DESC", "page_date")
+	pages, err := database.Query("SELECT page_title, page_content,page_date, page_guid FROM pages ORDER BY $1 DESC", "page_date")
 	fmt.Println(pages.Columns())
 	if err != nil {
 		log.Println("Error 1: " + err.Error())
@@ -200,7 +197,7 @@ func APIPage(w http.ResponseWriter, r *http.Request) {
 	pageGUID := vars["guid"]
 	thisPage := Page{}
 	fmt.Println(pageGUID)
-	err := database.QueryRow("SELECT page_title,page_content,page_date FROM pages WHERE page_guid=?", pageGUID).Scan(&thisPage.Title, &thisPage.RawContent, &thisPage.Date)
+	err := database.QueryRow("SELECT page_title, page_content, page_date FROM pages WHERE page_guid=$1", pageGUID).Scan(&thisPage.Title, &thisPage.RawContent, &thisPage.Date)
 	thisPage.Content = template.HTML(thisPage.RawContent)
 	if err != nil {
 		http.Error(w, http.StatusText(404), http.StatusNotFound)
@@ -271,12 +268,12 @@ func APIPost(w http.ResponseWriter, r *http.Request) {
 		log.Println(err.Error())
 	}
 
-	pageId := 0
+	//pageId := 0
 	pageGUID := "a-new-blog"
 	name := r.FormValue("name")
 	email := r.FormValue("email")
 	comments := r.FormValue("comments")
-	res, err := database.Exec("INSERT INTO comments (Page_id, Comment_guid, comment_name, comment_email, comment_text) VALUES (?, ?, ?, ?, ?)", pageId, pageGUID, name, email, comments)
+	res, err := database.Exec("INSERT INTO comments (page_id, comment_name, comment_email, comment_text) VALUES ($1, $2, $3, $4)", pageGUID, name, email, comments)
 	if err != nil {
 		http.Error(w, "Server error, unable to post comments", 500)
 		log.Println(err.Error())
@@ -325,7 +322,7 @@ func APIBadPut(w http.ResponseWriter, r *http.Request) {
 	name := r.FormValue("name")
 	email := r.FormValue("email")
 	comments := r.FormValue("comments")
-	res, err := database.Exec("UPDATE comments SET comment_name=?, comment_email=?, comment_text=? WHERE id=?", name, email, comments, id)
+	res, err := database.Exec("UPDATE comments SET comment_name=$1, comment_email=$2, comment_text=$3 WHERE id=$4", name, email, comments, id)
 	fmt.Println(res)
 	if err != nil {
 		log.Println(err.Error)
@@ -381,7 +378,7 @@ func APIPut(w http.ResponseWriter, r *http.Request) {
 
 	log.Println(formdata.Name)
 
-	res, err := database.Exec("UPDATE comments SET comment_name=?, comment_email=?, comment_text=? WHERE id=?", formdata.Name, formdata.Email, formdata.Comments, formdata.ID)
+	res, err := database.Exec("UPDATE comments SET comment_name=$1, comment_email=$2, comment_text=$3 WHERE id=$4", formdata.Name, formdata.Email, formdata.Comments, formdata.ID)
 	fmt.Println(res)
 	if err != nil {
 		log.Println(err.Error())
@@ -421,13 +418,19 @@ func weakPasswordHash(password string) []byte {
 */
 func main() {
 
-	dbConn := fmt.Sprintf("%s:%s@/%s", DBUser, DBPass, DBDbase)
-	fmt.Println(dbConn)
-	db, err := sql.Open("mysql", dbConn)
+	dbConn := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable", DBUser, DBPass, DBDbase)
+	//fmt.Println(dbConn)
+
+	//db, err := sql.Open("mysql", dbConn)
+
+	db, err := sql.Open("postgres", dbConn)
 	if err != nil {
 		log.Println("Couldn't connect to" + DBDbase)
 		log.Println(err.Error())
 	}
+
+	defer db.Close()
+
 	database = db
 
 	rtr := mux.NewRouter()
@@ -437,7 +440,7 @@ func main() {
 	jsHandler := http.FileServer(http.Dir("./static/js/"))
 	rtr.PathPrefix("/static/css").Handler(http.StripPrefix("/static/css", cssHandler))
 	rtr.PathPrefix("/static/images").Handler(http.StripPrefix("/static/images", imagesHandler))
-	rtr.PathPrefix("/static/js").Handler(http.StripPrefix("/static/js", jsHandler))
+	rtr.PathPrefix("/page/static/js").Handler(http.StripPrefix("/page/static/js", jsHandler))
 	http.Handle("/static/css/", http.StripPrefix("/static/css/", cssHandler))
 	http.Handle("/static/images/", http.StripPrefix("/static/images/", imagesHandler))
 	http.Handle("/static/js/", http.StripPrefix("/static/images/", jsHandler))
@@ -453,6 +456,7 @@ func main() {
 	rtr.HandleFunc("/api/commentz", APIPut).Methods("POST")
 	//routes.HandleFunc("/register", RegisterPOST).Methods("POST").Schemes("https")
 	//routes.HandleFunc("/login", LoginPOST).Methods("POST").Schemes("https")
+	rtr.HandleFunc("/static", ServeStatic)
 	http.Handle("/", rtr)
 
 	/*
@@ -473,7 +477,7 @@ func main() {
 	*/
 
 	//http.HandleFunc("/", ServeDynamic)
-	//http.HandleFunc("/static", ServeStatic)
+
 	/*
 		log.Printf("About to listen on 10443. Go to https://127.0.0.1:10443/")
 		zz := http.ListenAndServeTLS(":10443", "server.pem", "server.key", rtr)
@@ -484,6 +488,7 @@ func main() {
 		log.Fatal(zz)
 	*/
 
-	//http.ListenAndServe(":8080", nil)
-	http.ListenAndServe(":"+os.Getenv("PORT"), nil)
+	http.ListenAndServe(":8080", nil)
+
+	//http.ListenAndServe(":"+os.Getenv("PORT"), nil)
 }
