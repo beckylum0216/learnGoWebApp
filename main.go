@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	DBHost  = "127.0.0.1"
+	DBHost  = "ec2-54-163-234-20.compute-1.amazonaws.com"
 	DBPort  = ":5432"
 	DBUser  = "rebecca"
 	DBPass  = "murdoch33111264"
